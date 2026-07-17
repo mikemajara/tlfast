@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "tlfast",
+  "version": "0.1.0",
+  "description": "Command palette and power tools for tldraw.com",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.tldraw.com/*",
+    "https://tldraw.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.tldraw.com/*",
+        "https://tldraw.com/*"
+      ],
+      "js": ["page.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://www.tldraw.com/*",
+        "https://tldraw.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": [
+        "https://www.tldraw.com/*",
+        "https://tldraw.com/*"
+      ]
+    }
+  ]
+}
