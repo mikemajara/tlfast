@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-export const PRESET_STYLE_KEYS = ['geo', 'color', 'fill', 'dash', 'size', 'opacity', 'font', 'horizontalAlign', 'verticalAlign'] as const
-export type PresetStyles = Partial<Record<(typeof PRESET_STYLE_KEYS)[number], string>>
+export type PresetStyles = Record<string, string>
 export interface Preset { id: string; name: string; toolId: string; styles: PresetStyles }
 
 const STORAGE_KEY = 'tlfast-presets'
@@ -46,5 +45,5 @@ export function usePresets() {
 }
 
 export function currentPresetStyles(styles: Record<string, string | null>): PresetStyles {
-  return Object.fromEntries(PRESET_STYLE_KEYS.flatMap((key) => styles[key] ? [[key, styles[key]]] : [])) as PresetStyles
+  return Object.fromEntries(Object.entries(styles).filter((entry): entry is [string, string] => typeof entry[1] === 'string'))
 }

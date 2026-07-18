@@ -11,6 +11,7 @@ export interface PaletteState {
     isToolLocked?: boolean
   }
   pageName?: string
+  presetToolId?: string
   toolId?: string
   selectedCount: number
   styles: Record<string, string | null>

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { isPresetApplyCommand, presetApplyRequest } from '../src/commandBus.ts'
-import { applyPreset } from '../src/editorPresets.ts'
+import { applyPreset, resolvePresetToolId } from '../src/editorPresets.ts'
+import { currentPresetStyles } from '../src/presets.ts'
 
 test('preset requests use a unique id and canonical payload', () => {
   const request = presetApplyRequest({ id: 'blue-arrow', toolId: 'arrow', styles: { color: 'blue' } })
@@ -48,4 +49,31 @@ test('an unavailable style is skipped without changing the preset tool', () => {
 
   assert.deepEqual(skipped, ['geo'])
   assert.deepEqual(calls, [['tool', 'draw'], ['tool', 'draw']])
+})
+
+test('capture preserves arrowheads and other tool-specific styles', () => {
+  assert.deepEqual(currentPresetStyles({
+    arrowKind: 'arc',
+    arrowheadEnd: 'dot',
+    arrowheadStart: 'none',
+    dash: 'dashed',
+    opacity: '1',
+    mixedStyle: null,
+  }), {
+    arrowKind: 'arc',
+    arrowheadEnd: 'dot',
+    arrowheadStart: 'none',
+    dash: 'dashed',
+    opacity: '1',
+  })
+})
+
+test('a homogeneous selection supplies the preset tool', () => {
+  const editor = {
+    getCurrentToolId: () => 'select',
+    getSelectedShapeIds: () => ['arrow-1', 'arrow-2'],
+    getShape: () => ({ type: 'arrow' }),
+  }
+
+  assert.equal(resolvePresetToolId(editor), 'arrow')
 })

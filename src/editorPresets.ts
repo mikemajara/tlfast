@@ -3,6 +3,20 @@ export interface PresetPayload {
   styles?: unknown
 }
 
+const SHAPE_TOOL_IDS = new Set(['geo', 'draw', 'arrow', 'line', 'text', 'note', 'highlight'])
+
+export function resolvePresetToolId(editor: any) {
+  const currentToolId = editor.getCurrentToolId()
+  const selectedIds = editor.getSelectedShapeIds()
+  if (selectedIds.length === 0) return currentToolId
+
+  const selectedTypes = selectedIds.map((id: string) => editor.getShape(id)?.type)
+  const selectedType = selectedTypes[0]
+  return selectedType && SHAPE_TOOL_IDS.has(selectedType) && selectedTypes.every((type: unknown) => type === selectedType)
+    ? selectedType
+    : currentToolId
+}
+
 function getStyle(editor: any, id: string) {
   try {
     for (const [style] of editor.getSharedStyles()) {

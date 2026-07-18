@@ -20,12 +20,19 @@ export function PresetPanel() {
     const onState = (event: Event) => {
       const next = JSON.parse((event as CustomEvent<string>).detail) as PaletteState
       setState(next)
-      if (!editing && next.toolId) setToolId(next.toolId)
+      const nextPresetToolId = next.presetToolId || next.toolId
+      if (!editing && nextPresetToolId) setToolId(nextPresetToolId)
     }
     document.addEventListener(STATE_EVENT, onState)
     return () => document.removeEventListener(STATE_EVENT, onState)
   }, [editing])
-  useEffect(() => { if (open) document.dispatchEvent(new CustomEvent(REQUEST_STATE_EVENT)) }, [open])
+  useEffect(() => {
+    if (!open) return
+    const requestState = () => document.dispatchEvent(new CustomEvent(REQUEST_STATE_EVENT))
+    requestState()
+    const interval = window.setInterval(requestState, 300)
+    return () => window.clearInterval(interval)
+  }, [open])
   useEffect(() => {
     let toolbar: HTMLElement | null = null
     let resizeObserver: ResizeObserver | null = null
@@ -56,11 +63,12 @@ export function PresetPanel() {
   }
   const save = async () => {
     const trimmed = name.trim()
-    if (!trimmed || state.toolId !== toolId) return
+    const capturedToolId = state.presetToolId || state.toolId
+    if (!trimmed || capturedToolId !== toolId) return
     const styles = currentPresetStyles(state.styles)
     if (editing) await update(presets.map((preset) => preset.id === editing ? { ...preset, name: trimmed, toolId, styles } : preset))
     else await update([...presets, { id: crypto.randomUUID(), name: trimmed, toolId, styles }])
-    setName(''); setEditing(null); setToolId(state.toolId || 'geo')
+    setName(''); setEditing(null); setToolId(capturedToolId || 'geo')
   }
   const startEdit = (preset: Preset) => {
     setEditing(preset.id)
@@ -75,7 +83,7 @@ export function PresetPanel() {
       <div style={saveRowStyle}>
         <input value={name} onChange={(event) => setName(event.target.value)} placeholder={editing ? 'Preset name' : 'New preset name'} style={inputStyle} />
       </div>
-      <div style={saveRowStyle}><select value={toolId} onChange={(event) => selectTool(event.target.value)} style={inputStyle}>{TOOL_OPTIONS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select><button disabled={state.toolId !== toolId} style={{ ...primaryButtonStyle, ...(state.toolId !== toolId ? disabledButtonStyle : {}) }} onClick={save}>{editing ? 'Update' : 'Save tool'}</button></div>
+      <div style={saveRowStyle}><select value={toolId} onChange={(event) => selectTool(event.target.value)} style={inputStyle}>{TOOL_OPTIONS.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select><button disabled={(state.presetToolId || state.toolId) !== toolId} style={{ ...primaryButtonStyle, ...((state.presetToolId || state.toolId) !== toolId ? disabledButtonStyle : {}) }} onClick={save}>{editing ? 'Update' : 'Save tool'}</button></div>
       <small style={hintStyle}>{editing ? 'Updates this tool with the current styles.' : 'Captures the selected tool and its current styles.'}</small>
       <div style={listStyle}>{presets.length === 0 ? <div style={emptyStyle}>No saved presets yet.</div> : presets.map((preset) => <PresetRow key={preset.id} preset={preset} onApply={apply} onEdit={startEdit} onDelete={() => update(presets.filter((item) => item.id !== preset.id))} />)}</div>
     </div>}

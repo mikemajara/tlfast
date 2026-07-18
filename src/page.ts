@@ -1,4 +1,4 @@
-import { applyPreset } from './editorPresets'
+import { applyPreset, resolvePresetToolId } from './editorPresets'
 
 const RUN_COMMAND_EVENT = 'tlfast:run-command'
 const PRESET_COMMAND_PREFIX = 'preset.apply.'
@@ -150,6 +150,7 @@ function sendState(editor: any) {
     pageName: editor.getCurrentPage()?.name,
     selectedCount: editor.getSelectedShapeIds().length,
     styles,
+    presetToolId: resolvePresetToolId(editor),
     toolId: editor.getCurrentToolId(),
   }
   document.dispatchEvent(new CustomEvent(STATE_EVENT, { detail: JSON.stringify(state) }))
