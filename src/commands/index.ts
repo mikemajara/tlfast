@@ -40,7 +40,7 @@ export const GROUPS: Array<{ id: CommandGroup; label: string; description: strin
   { id: 'arrange', label: 'Arrange', description: 'Align, distribute, stack, and lock' },
   { id: 'view', label: 'View & settings', description: 'Focus, theme, grid, and tool lock' },
   { id: 'presets', label: 'Presets', description: 'Apply saved style combinations' },
-  { id: 'export', label: 'Export & page', description: 'Download and rename this page' },
+  { id: 'export', label: 'File, page & export', description: 'Create, rename, and download' },
 ]
 
 const COLORS = [
@@ -141,6 +141,8 @@ export function getCommands(state: PaletteState, presets: Preset[] = []): Comman
       return command('presets', request.id, `Apply preset: ${preset.name}`, { keywords: `preset ${preset.name}`, payload: request.payload })
     }),
 
+    command('export', 'file.new', 'New file', { keywords: 'create document canvas' }),
+    command('export', 'page.new', 'New page', { keywords: 'create add' }),
     command('export', 'page.rename', `Rename page${state.pageName ? `: ${state.pageName}` : ''}`),
     command('export', 'export.png', 'Download PNG'),
     command('export', 'export.svg', 'Download SVG'),

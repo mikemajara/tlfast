@@ -62,6 +62,13 @@ async function exportFile(editor: any, format: 'png' | 'svg' | 'json') {
   download(image.blob, `${safeName}.${format}`)
 }
 
+function createPage(editor: any) {
+  const existingPageIds = new Set(editor.getPages().map((page: any) => page.id))
+  editor.createPage({ name: 'Page 1' })
+  const newPage = editor.getPages().find((page: any) => !existingPageIds.has(page.id))
+  if (newPage) editor.setCurrentPage(newPage.id)
+}
+
 async function executeCommand(editor: any, id: string, payload?: any) {
   if (id.startsWith(PRESET_COMMAND_PREFIX)) {
     const skippedStyles = applyPreset(editor, payload)
@@ -111,6 +118,8 @@ async function executeCommand(editor: any, id: string, payload?: any) {
     case 'view.zoom-out': return editor.zoomOut()
     case 'view.zoom-fit': return editor.zoomToFit()
     case 'view.zoom-selection': return editor.zoomToSelection()
+    case 'file.new': return window.location.assign('/new')
+    case 'page.new': return createPage(editor)
     case 'page.rename': {
       const page = editor.getCurrentPage()
       const name = window.prompt('Rename page', page?.name || '')
