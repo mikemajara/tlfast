@@ -143,7 +143,7 @@ export function getCommands(state: PaletteState, presets: Preset[] = []): Comman
 
     ...presets.map((preset) => {
       const request = presetApplyRequest(preset)
-      return command('presets', request.id, `Apply preset: ${preset.name}`, { keywords: `preset ${preset.name}`, payload: request.payload })
+      return command('presets', request.id, `Preset: ${preset.name}`, { keywords: `preset ${preset.name}`, payload: request.payload })
     }),
 
     command('export', 'file.new', 'New file', { keywords: 'create document canvas' }),
