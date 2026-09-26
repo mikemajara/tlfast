@@ -1,15 +1,28 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { dispatchCommand, presetApplyRequest } from '../commandBus'
-import { usePresets } from '../presets'
+import { captureCurrentPreset, dispatchCommand, PRESET_CAPTURED_EVENT, presetApplyRequest } from '../commandBus'
+import { type Preset, usePresets } from '../presets'
 
 export function PresetButton() {
   const [toolbarSlot, setToolbarSlot] = useState<HTMLElement | null>(null)
   const [open, setOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState({ right: 0, bottom: 0 })
-  const { presets } = usePresets()
+  const { presets, save } = usePresets()
   const containerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onCaptured = (event: Event) => {
+      try {
+        const preset = JSON.parse((event as CustomEvent<string>).detail) as Preset
+        if (preset.id && preset.name && preset.toolId && preset.styles) void save(preset)
+      } catch {
+        console.warn('[tlfast] could not save captured preset')
+      }
+    }
+    document.addEventListener(PRESET_CAPTURED_EVENT, onCaptured)
+    return () => document.removeEventListener(PRESET_CAPTURED_EVENT, onCaptured)
+  }, [save])
 
   useEffect(() => {
     let currentSlot: HTMLElement | null = null
@@ -123,6 +136,21 @@ export function PresetButton() {
           style={{ ...menuStyle, right: menuPosition.right, bottom: menuPosition.bottom }}
         >
           <div style={menuTitleStyle}>Presets</div>
+          <button
+            type="button"
+            role="menuitem"
+            style={menuItemStyle}
+            onClick={() => {
+              const name = window.prompt('Save current preset', 'My preset')?.trim()
+              if (name) {
+                captureCurrentPreset(name)
+                setOpen(false)
+              }
+            }}
+          >
+            Save current…
+          </button>
+          <div style={separatorStyle} />
           {presets.map((preset) => (
             <button
               key={preset.id}
@@ -240,6 +268,12 @@ const menuItemStyle = {
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
+} as const
+
+const separatorStyle = {
+  height: '1px',
+  margin: '4px 6px',
+  background: 'rgba(0, 0, 0, 0.1)',
 } as const
 
 const presetIconStyle = {

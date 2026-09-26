@@ -1,6 +1,8 @@
 import { applyPreset, resolvePresetToolId } from './editorPresets'
 import { isSidebarOpen, toggleSidebar } from './tldrawSidebar'
 
+const CAPTURE_PRESET_EVENT = 'tlfast:capture-preset'
+const PRESET_CAPTURED_EVENT = 'tlfast:preset-captured'
 const RUN_COMMAND_EVENT = 'tlfast:run-command'
 const PRESET_COMMAND_PREFIX = 'preset.apply.'
 const REQUEST_STATE_EVENT = 'tlfast:request-state'
@@ -168,6 +170,35 @@ function sendState(editor: any) {
   document.dispatchEvent(new CustomEvent(STATE_EVENT, { detail: JSON.stringify(state) }))
 }
 
+function capturePreset(editor: any, name: string) {
+  const styles: Record<string, string> = {}
+  try {
+    for (const [style, value] of editor.getSharedStyles()) {
+      if (value.type === 'shared') styles[style.id.replace('tldraw:', '')] = value.value
+    }
+  } catch {
+    // The editor may not have styles available during initialization.
+  }
+  try {
+    const opacity = editor.getSharedOpacity()
+    if (opacity.type === 'shared') styles.opacity = String(opacity.value)
+  } catch {
+    // Opacity may not be available while the editor is initializing.
+  }
+
+  const id = typeof crypto?.randomUUID === 'function'
+    ? `custom-${crypto.randomUUID()}`
+    : `custom-${Date.now()}`
+  document.dispatchEvent(new CustomEvent(PRESET_CAPTURED_EVENT, {
+    detail: JSON.stringify({
+      id,
+      name,
+      toolId: editor.getCurrentToolId(),
+      styles,
+    }),
+  }))
+}
+
 function withEditor(callback: (editor: any) => void, retries = MAX_EDITOR_RETRIES) {
   const editor = (window as any).editor
   if (editor) return callback(editor)
@@ -176,6 +207,16 @@ function withEditor(callback: (editor: any) => void, retries = MAX_EDITOR_RETRIE
 }
 
 document.addEventListener(REQUEST_STATE_EVENT, () => withEditor(sendState))
+
+document.addEventListener(CAPTURE_PRESET_EVENT, (event) => {
+  try {
+    const { name } = JSON.parse((event as CustomEvent<string>).detail)
+    if (typeof name !== 'string' || !name.trim()) return
+    withEditor((editor) => capturePreset(editor, name.trim()))
+  } catch (error) {
+    console.error('[tlfast] invalid preset capture request', error)
+  }
+})
 
 document.addEventListener(RUN_COMMAND_EVENT, (event) => {
   try {

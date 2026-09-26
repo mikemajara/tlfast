@@ -33,42 +33,32 @@ export const BUILT_IN_PRESETS: Preset[] = presetCatalog.map((entry: PresetCatalo
 const STORAGE_KEY = 'tlfast-presets'
 const UPDATED_EVENT = 'tlfast:presets-updated'
 
-function getStorage() {
-  return (globalThis as any).chrome?.storage?.sync
-}
-
 async function loadPresets(): Promise<Preset[]> {
-  const storage = getStorage()
-  if (storage) {
-    const result = await storage.get(STORAGE_KEY)
-    return result[STORAGE_KEY] ?? []
-  }
   return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
 }
 
 async function savePresets(presets: Preset[]) {
-  const storage = getStorage()
-  if (storage) await storage.set({ [STORAGE_KEY]: presets })
-  else localStorage.setItem(STORAGE_KEY, JSON.stringify(presets))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(presets))
   document.dispatchEvent(new CustomEvent(UPDATED_EVENT, { detail: presets }))
 }
 
 export function usePresets() {
-  const [presets, setPresets] = useState<Preset[]>([])
+  const [customPresets, setCustomPresets] = useState<Preset[]>([])
 
   useEffect(() => {
-    loadPresets().then((customPresets) => setPresets([...BUILT_IN_PRESETS, ...customPresets])).catch(() => setPresets(BUILT_IN_PRESETS))
-    const onUpdate = (event: Event) => setPresets((event as CustomEvent<Preset[]>).detail)
+    loadPresets().then(setCustomPresets).catch(() => setCustomPresets([]))
+    const onUpdate = (event: Event) => setCustomPresets((event as CustomEvent<Preset[]>).detail)
     document.addEventListener(UPDATED_EVENT, onUpdate)
     return () => document.removeEventListener(UPDATED_EVENT, onUpdate)
   }, [])
 
-  const update = useCallback(async (next: Preset[]) => {
-    setPresets(next)
+  const save = useCallback(async (preset: Preset) => {
+    const next = [...customPresets, preset]
+    setCustomPresets(next)
     await savePresets(next)
-  }, [])
+  }, [customPresets])
 
-  return { presets, update }
+  return { presets: [...BUILT_IN_PRESETS, ...customPresets], save }
 }
 
 export function currentPresetStyles(styles: Record<string, string | null>): PresetStyles {
