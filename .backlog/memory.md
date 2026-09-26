@@ -1,6 +1,7 @@
 # Backlog Memory
 
 ## Decisions
+- **Presets are named bundles of tldraw selections**, not a stored active mode. Apply stamps next-draw styles and optionally a shape. Built-ins and locally saved user presets appear in the command palette and a tlfast trigger mounted into tldraw's Tools toolbar. First built-ins: default look, directional arrow, and dashed annotation arrow. Preset management remains in #6; saved complex shapes remain in #7. Built-in ship is #5.
 - **Extension directly**, not userscript MVP. Chrome only for now.
 - **Bundled React 18** via Vite, not vanilla JS. Keeps components reusable for theming/presets later.
 - **Palette-only MVP** first. Presets and theming in Phase 2.
