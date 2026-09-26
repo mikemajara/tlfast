@@ -1,0 +1,33 @@
+[
+  {
+    "id": "default-look",
+    "name": "Default look",
+    "description": "Semi fill, solid line, sans font",
+    "styles": {
+      "fill": "semi",
+      "dash": "solid",
+      "font": "sans"
+    }
+  },
+  {
+    "id": "directional-arrow",
+    "name": "Directional arrow",
+    "description": "Arrow for showing direction",
+    "toolId": "arrow",
+    "styles": {
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow"
+    }
+  },
+  {
+    "id": "annotation-arrow",
+    "name": "Annotation arrow",
+    "description": "Dashed arrow with a circle head",
+    "toolId": "arrow",
+    "styles": {
+      "dash": "dashed",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "dot"
+    }
+  }
+]

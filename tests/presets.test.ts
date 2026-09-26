@@ -2,7 +2,22 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { isPresetApplyCommand, presetApplyRequest } from '../src/commandBus.ts'
 import { applyPreset, resolvePresetToolId } from '../src/editorPresets.ts'
-import { currentPresetStyles } from '../src/presets.ts'
+import { BUILT_IN_PRESETS, currentPresetStyles } from '../src/presets.ts'
+
+test('the built-in catalog contains style-only and shape presets', () => {
+  assert.deepEqual(BUILT_IN_PRESETS.map(({ id }) => id), [
+    'default-look',
+    'directional-arrow',
+    'annotation-arrow',
+  ])
+  assert.equal(BUILT_IN_PRESETS[0].toolId, undefined)
+  assert.equal(BUILT_IN_PRESETS[1].toolId, 'arrow')
+  assert.deepEqual(BUILT_IN_PRESETS[2].styles, {
+    dash: 'dashed',
+    arrowheadStart: 'none',
+    arrowheadEnd: 'dot',
+  })
+})
 
 test('preset requests use a unique id and canonical payload', () => {
   const request = presetApplyRequest({ id: 'blue-arrow', toolId: 'arrow', styles: { color: 'blue' } })
@@ -49,6 +64,25 @@ test('an unavailable style is skipped without changing the preset tool', () => {
 
   assert.deepEqual(skipped, ['geo'])
   assert.deepEqual(calls, [['tool', 'draw'], ['tool', 'draw']])
+})
+
+test('a style-only preset preserves the current tool', () => {
+  const calls: Array<unknown[]> = []
+  const styles = new Map([
+    [{ id: 'tldraw:fill' }, { type: 'shared', value: 'none' }],
+  ])
+  const editor = {
+    getCurrentToolId: () => 'select',
+    getSelectedShapeIds: () => [],
+    getSharedStyles: () => styles,
+    setCurrentTool: (toolId: string) => calls.push(['tool', toolId]),
+    setStyleForNextShapes: (style: unknown, value: string) => calls.push(['next-style', style, value]),
+  }
+
+  assert.deepEqual(applyPreset(editor, { styles: { fill: 'semi' } }), [])
+  assert.deepEqual(calls, [
+    ['next-style', [...styles.keys()][0], 'semi'],
+  ])
 })
 
 test('capture preserves arrowheads and other tool-specific styles', () => {

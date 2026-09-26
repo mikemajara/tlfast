@@ -29,15 +29,19 @@ function getStyle(editor: any, id: string) {
 }
 
 export function applyPreset(editor: any, payload: PresetPayload | undefined) {
-  if (typeof payload?.toolId !== 'string' || !payload.toolId) return []
-
-  const toolId = payload.toolId
-  const styles = payload.styles && typeof payload.styles === 'object'
+  const toolId = typeof payload?.toolId === 'string' && payload.toolId ? payload.toolId : undefined
+  const styles = payload?.styles && typeof payload.styles === 'object'
     ? Object.entries(payload.styles)
     : []
-  const skippedStyles: string[] = []
+  if (!toolId && styles.length === 0) return []
 
-  editor.setCurrentTool(toolId)
+  const skippedStyles: string[] = []
+  const previousToolId = typeof editor.getCurrentToolId === 'function'
+    ? editor.getCurrentToolId()
+    : undefined
+  let usedFallbackTool = false
+
+  if (toolId) editor.setCurrentTool(toolId)
 
   for (const [styleId, value] of styles) {
     if (typeof value !== 'string') {
@@ -51,12 +55,20 @@ export function applyPreset(editor: any, payload: PresetPayload | undefined) {
       continue
     }
 
-    const style = getStyle(editor, styleId)
+    let style = getStyle(editor, styleId)
+    if (!style && !toolId && editor.getSelectedShapeIds().length === 0) {
+      // The select tool may not expose shape styles. Temporarily use geo to
+      // resolve them, then restore the user's current tool below.
+      editor.setCurrentTool('geo')
+      usedFallbackTool = true
+      style = getStyle(editor, styleId)
+    }
     if (style) editor.setStyleForNextShapes(style, value)
     else skippedStyles.push(styleId)
   }
 
-  // Keep an unavailable style from leaving the editor on a fallback tool.
-  editor.setCurrentTool(toolId)
+  // Keep a style-only preset from changing the current tool.
+  if (toolId) editor.setCurrentTool(toolId)
+  else if (usedFallbackTool && previousToolId) editor.setCurrentTool(previousToolId)
   return skippedStyles
 }

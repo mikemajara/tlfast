@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
+import presetCatalog from './presetCatalog.json' with { type: 'json' }
 
 export type PresetStyles = Record<string, string>
-export interface Preset { id: string; name: string; toolId: string; styles: PresetStyles }
+export interface Preset {
+  id: string
+  name: string
+  description?: string
+  iconSvg?: string
+  toolId?: string
+  styles: PresetStyles
+}
+
+export const BUILT_IN_PRESETS: Preset[] = presetCatalog
 
 const STORAGE_KEY = 'tlfast-presets'
 const UPDATED_EVENT = 'tlfast:presets-updated'
@@ -30,7 +40,7 @@ export function usePresets() {
   const [presets, setPresets] = useState<Preset[]>([])
 
   useEffect(() => {
-    loadPresets().then(setPresets).catch(() => setPresets([]))
+    loadPresets().then((customPresets) => setPresets([...BUILT_IN_PRESETS, ...customPresets])).catch(() => setPresets(BUILT_IN_PRESETS))
     const onUpdate = (event: Event) => setPresets((event as CustomEvent<Preset[]>).detail)
     document.addEventListener(UPDATED_EVENT, onUpdate)
     return () => document.removeEventListener(UPDATED_EVENT, onUpdate)
