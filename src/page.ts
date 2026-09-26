@@ -1,4 +1,5 @@
 import { applyPreset, resolvePresetToolId } from './editorPresets'
+import { isSidebarOpen, toggleSidebar } from './tldrawSidebar'
 
 const RUN_COMMAND_EVENT = 'tlfast:run-command'
 const PRESET_COMMAND_PREFIX = 'preset.apply.'
@@ -114,6 +115,7 @@ async function executeCommand(editor: any, id: string, payload?: any) {
     case 'setting.tool-lock': return editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
     case 'setting.grid': return editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
     case 'setting.theme': return editor.setColorMode(editor.getColorMode() === 'dark' ? 'light' : 'dark')
+    case 'view.toggle-sidebar': return toggleSidebar()
     case 'view.zoom-in': return editor.zoomIn()
     case 'view.zoom-out': return editor.zoomOut()
     case 'view.zoom-fit': return editor.zoomToFit()
@@ -158,6 +160,7 @@ function sendState(editor: any) {
     },
     pageName: editor.getCurrentPage()?.name,
     selectedCount: editor.getSelectedShapeIds().length,
+    sidebarOpen: isSidebarOpen(),
     styles,
     presetToolId: resolvePresetToolId(editor),
     toolId: editor.getCurrentToolId(),
