@@ -11,12 +11,14 @@ test('the built-in catalog contains style-only and shape presets', () => {
     'annotation-arrow',
   ])
   assert.equal(BUILT_IN_PRESETS[0].toolId, undefined)
+  assert.equal(BUILT_IN_PRESETS[0].styles.color, 'black')
+  assert.equal(BUILT_IN_PRESETS[0].styles.horizontalAlign, 'middle')
+  assert.equal(BUILT_IN_PRESETS[0].styles.verticalAlign, 'middle')
   assert.equal(BUILT_IN_PRESETS[1].toolId, 'arrow')
-  assert.deepEqual(BUILT_IN_PRESETS[2].styles, {
-    dash: 'dashed',
-    arrowheadStart: 'none',
-    arrowheadEnd: 'dot',
-  })
+  assert.equal(BUILT_IN_PRESETS[2].styles.color, 'black')
+  assert.equal(BUILT_IN_PRESETS[2].styles.dash, 'dashed')
+  assert.equal(BUILT_IN_PRESETS[2].styles.arrowheadStart, 'none')
+  assert.equal(BUILT_IN_PRESETS[2].styles.arrowheadEnd, 'dot')
 })
 
 test('preset requests use a unique id and canonical payload', () => {

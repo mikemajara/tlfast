@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import presetCatalog from './presetCatalog.json' with { type: 'json' }
+import { GEO_SHAPES, presetCatalog, type PresetCatalogEntry } from './presetCatalog.ts'
 
 export type PresetStyles = Record<string, string>
 export interface Preset {
@@ -11,7 +11,24 @@ export interface Preset {
   styles: PresetStyles
 }
 
-export const BUILT_IN_PRESETS: Preset[] = presetCatalog
+export const BUILT_IN_PRESETS: Preset[] = presetCatalog.map((entry: PresetCatalogEntry) => {
+  const styles: PresetStyles = { ...entry.styles }
+  const toolId = entry.shape
+    ? GEO_SHAPES.has(entry.shape)
+      ? 'geo'
+      : entry.shape
+    : undefined
+  if (entry.shape && GEO_SHAPES.has(entry.shape)) styles.geo = entry.shape
+
+  return {
+    id: entry.id,
+    name: entry.name,
+    description: entry.description,
+    iconSvg: entry.iconSvg,
+    toolId,
+    styles,
+  }
+})
 
 const STORAGE_KEY = 'tlfast-presets'
 const UPDATED_EVENT = 'tlfast:presets-updated'
