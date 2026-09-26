@@ -12,6 +12,7 @@ export interface PaletteState {
   }
   pageName?: string
   presetToolId?: string
+  sidebarOpen?: boolean
   toolId?: string
   selectedCount: number
   styles: Record<string, string | null>
@@ -38,7 +39,7 @@ export const GROUPS: Array<{ id: CommandGroup; label: string; description: strin
   { id: 'style', label: 'Style', description: 'Color, fill, line, size, and opacity' },
   { id: 'text', label: 'Text', description: 'Font and text alignment' },
   { id: 'arrange', label: 'Arrange', description: 'Align, distribute, stack, and lock' },
-  { id: 'view', label: 'View & settings', description: 'Focus, theme, grid, and tool lock' },
+  { id: 'view', label: 'View & settings', description: 'Focus, theme, grid, sidebar, and tool lock' },
   { id: 'presets', label: 'Presets', description: 'Apply saved style combinations' },
   { id: 'export', label: 'File, page & export', description: 'Create, rename, and download' },
 ]
@@ -131,6 +132,10 @@ export function getCommands(state: PaletteState, presets: Preset[] = []): Comman
     command('view', 'setting.tool-lock', 'Tool lock', { value: state.instance?.isToolLocked ? 'On ✓' : 'Off' }),
     command('view', 'setting.grid', 'Show grid', { value: state.instance?.isGridMode ? 'On ✓' : 'Off' }),
     command('view', 'setting.theme', 'Toggle theme', { value: state.colorMode === 'dark' ? 'Dark ✓' : 'Light' }),
+    command('view', 'view.toggle-sidebar', 'Toggle sidebar', {
+      keywords: 'files panel navigator menu',
+      value: state.sidebarOpen == null ? undefined : state.sidebarOpen ? 'Open ✓' : 'Closed',
+    }),
     command('view', 'view.zoom-in', 'Zoom in'),
     command('view', 'view.zoom-out', 'Zoom out'),
     command('view', 'view.zoom-fit', 'Zoom to fit'),
